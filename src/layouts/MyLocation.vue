@@ -21,8 +21,14 @@
   <div class="body">
     <div class="weather-wrap">
       <div class="location-box">
-        <div class="location">{{ weatherData?.name }}</div>
+        <div class="location">
+          <p>West Bengal, India</p>
+        </div>
         <div class="date">{{ date }}</div>
+      </div>
+      <div class="city">
+        <span><CIcon class="cityLoc" :icon="cilLocationPin" size="l" /></span>
+        <h5>{{ weatherData?.name }}</h5>
       </div>
     </div>
 
@@ -54,18 +60,35 @@ export default {
       weatherData: null,
       temp: null,
       date: null,
+      lat: null,
+      long: null,
     };
   },
   methods: {
-    async fetchData() {
-      api
-        .get(
-          `https://api.openweathermap.org/data/2.5/weather?lat=22.584772&lon=88.486730&appid=${this.api_key}`
-        )
-        .then((response) => {
-          this.weatherData = response.data;
-          this.temp = Math.floor(this.weatherData.main.temp - 273.15);
-        });
+    async fetchWeatherData() {
+      // const options = {
+      //   enableHighAccuracy: true,
+      //   timeout: 10000,
+      // };
+      navigator.geolocation.watchPosition(
+        (res, error, options) => {
+          // console.log(res);
+          this.lat = res.coords.latitude;
+          this.long = res.coords.longitude;
+          console.log(this.lat, this.long);
+          api
+            .get(
+              `https://api.openweathermap.org/data/2.5/weather?lat=${this.lat}&lon=${this.long}&appid=${this.api_key}`
+            )
+            .then((response) => {
+              this.weatherData = response.data;
+              this.temp = Math.floor(this.weatherData.main.temp - 273.15);
+            });
+        },
+        (err) => {
+          console.log("access faild");
+        }
+      );
     },
 
     getDate() {
@@ -78,7 +101,7 @@ export default {
   //   console.log(results);
   // },
   mounted() {
-    this.fetchData();
+    this.fetchWeatherData();
     this.getDate();
   },
 };
@@ -140,6 +163,13 @@ input {
   display: flex;
   justify-content: space-between;
   padding: 8px;
+  color: #fff;
+}
+.cityLoc {
+  width: 25px;
+}
+.city {
+  display: flex;
   color: #fff;
 }
 </style>
